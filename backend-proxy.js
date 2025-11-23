@@ -8,8 +8,6 @@ const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const querystring = require('querystring');
 const os = require('os');
-const fs = require('fs');
-const https = require('https');
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,20 +27,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const SSL_KEY_PATH = './config/ssl/key.pem';
-const SSL_CERT_PATH = './config/ssl/cert.pem';
-
-let useHttps = false;
-let credentials;
-try {
-    credentials = {
-        key: fs.readFileSync(SSL_KEY_PATH),
-        cert: fs.readFileSync(SSL_CERT_PATH)
-    };
-    useHttps = true;
-} catch (e) {
-    console.warn('⚠️ Certificats SSL non trouvés, le serveur démarre en HTTP. Pour activer HTTPS, placez key.pem et cert.pem dans ./config/ssl/');
-}
+// Suppression du support HTTPS local pour Render
 
 // Route de login
 app.post('/login', async (req, res) => {
@@ -93,30 +78,6 @@ app.post('/login', async (req, res) => {
     }
 });
 
-if (useHttps) {
-    https.createServer(credentials, app).listen(PORT, () => {
-        const ifaces = os.networkInterfaces();
-        console.log(`Proxy Cloudflow lancé en HTTPS sur le port ${PORT}`);
-        Object.keys(ifaces).forEach((ifname) => {
-            ifaces[ifname].forEach((iface) => {
-                if ('IPv4' !== iface.family || iface.internal !== false) {
-                    return;
-                }
-                console.log(`Accessible sur : https://${iface.address}:${PORT}`);
-            });
-        });
-    });
-} else {
-    app.listen(PORT, () => {
-        const ifaces = os.networkInterfaces();
-        console.log(`Proxy Cloudflow lancé sur le port ${PORT}`);
-        Object.keys(ifaces).forEach((ifname) => {
-            ifaces[ifname].forEach((iface) => {
-                if ('IPv4' !== iface.family || iface.internal !== false) {
-                    return;
-                }
-                console.log(`Accessible sur : http://${iface.address}:${PORT}`);
-            });
-        });
-    });
-}
+app.listen(PORT, () => {
+    console.log(`Proxy Cloudflow lancé sur le port ${PORT}`);
+});
