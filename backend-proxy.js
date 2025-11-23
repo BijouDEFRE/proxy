@@ -38,56 +38,100 @@ app.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Missing credentials' });
     }
     const cloudflowUrl = CLOUDFLOW_URL;
-    // Format 1 : JSON direct
-    const tryFormats = [
-        {
-            body: JSON.stringify({ method: 'auth.login', user_name, user_pass }),
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            description: 'JSON direct'
-        },
-        {
-            body: JSON.stringify({ request: JSON.stringify({ method: 'auth.login', user_name, user_pass }) }),
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            description: 'JSON dans request'
-        },
-        {
-            body: require('querystring').stringify({ action: 'login', username: user_name, password: user_pass }),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
-            description: 'x-www-form-urlencoded classique'
+        // Log du corps reçu
+        console.log('==== POST /login reçu ====');
+        console.log('Headers:', req.headers);
+        console.log('Body brut:', req.body);
+        if (!user_name || !user_pass) {
+            console.log('Erreur : credentials manquants');
+            return res.status(400).json({ error: 'Missing credentials' });
         }
-    ];
-    let lastError = null;
-    for (const fmt of tryFormats) {
-        console.log(`Test format Cloudflow : ${fmt.description}`);
-        console.log('Body envoyé :', fmt.body);
+
+        // Format 1 : JSON direct
+        const bodyJson = JSON.stringify({
+            method: 'auth.login',
+            user_name,
+            user_pass
+        });
+        console.log('Test Format 1 (JSON direct)');
         try {
-            const response = await fetch(cloudflowUrl, {
+            const response1 = await fetch(CLOUDFLOW_URL, {
                 method: 'POST',
-                headers: fmt.headers,
-                body: fmt.body
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: bodyJson
             });
-            const raw = await response.text();
-            console.log('Réponse brute Cloudflow:', raw);
-            let data;
-            try {
-                data = JSON.parse(raw);
-            } catch (e) {
-                data = { error: 'Réponse non JSON', raw };
-            }
-            // Si pas d'erreur "Missing method parameter", renvoyer la réponse
-            if (!data.error_code || data.error_code !== 'Missing method parameter') {
-                if (user_name === 'TEST-STMICHEL' && data && data.user_id) {
+            const raw1 = await response1.text();
+            console.log('Réponse Format 1:', raw1);
+            let data1;
+            try { data1 = JSON.parse(raw1); } catch (e) { data1 = { error: 'Réponse non JSON', raw: raw1 }; }
+            if (!data1.error && data1.user_id) {
+                if (user_name === 'TEST-STMICHEL') {
                     return res.redirect('https://bag.digitalproof.fr/PP_FILE_STORE/Public/LASERPHOT/Essais-HomePage/search-articles-STMICHEL.html');
                 }
-                return res.status(response.status).json(data);
+                return res.status(response1.status).json(data1);
             }
-            lastError = data;
+            // Format 2 : request=JSON
+            const bodyRequest = require('querystring').stringify({
+                request: JSON.stringify({ method: 'auth.login', user_name, user_pass })
+            });
+            console.log('Test Format 2 (request=JSON)');
+            const response2 = await fetch(CLOUDFLOW_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+                body: bodyRequest
+            });
+            const raw2 = await response2.text();
+            console.log('Réponse Format 2:', raw2);
+            let data2;
+            try { data2 = JSON.parse(raw2); } catch (e) { data2 = { error: 'Réponse non JSON', raw: raw2 }; }
+            if (!data2.error && data2.user_id) {
+                if (user_name === 'TEST-STMICHEL') {
+                    return res.redirect('https://bag.digitalproof.fr/PP_FILE_STORE/Public/LASERPHOT/Essais-HomePage/search-articles-STMICHEL.html');
+                }
+                return res.status(response2.status).json(data2);
+            }
+            // Format 3 : classique
+            const bodyClassic = require('querystring').stringify({
+                action: 'login',
+                username: user_name,
+                password: user_pass
+            });
+            console.log('Test Format 3 (classique)');
+            const response3 = await fetch(CLOUDFLOW_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+                body: bodyClassic
+            });
+            const raw3 = await response3.text();
+            console.log('Réponse Format 3:', raw3);
+            let data3;
+            try { data3 = JSON.parse(raw3); } catch (e) { data3 = { error: 'Réponse non JSON', raw: raw3 }; }
+            if (!data3.error && data3.user_id) {
+                if (user_name === 'TEST-STMICHEL') {
+                    return res.redirect('https://bag.digitalproof.fr/PP_FILE_STORE/Public/LASERPHOT/Essais-HomePage/search-articles-STMICHEL.html');
+                }
+                return res.status(response3.status).json(data3);
+            }
+            // Si aucun format ne fonctionne, renvoyer la dernière réponse
+            return res.status(400).json({
+                error: 'Aucun format accepté par Cloudflow',
+                format1: data1,
+                format2: data2,
+                format3: data3
+            });
         } catch (err) {
-            lastError = { error: 'Proxy error', details: err.message };
+            console.log('Erreur proxy:', err);
+            res.status(500).json({ error: 'Proxy error', details: err.message });
         }
-    }
-    // Si tous les formats échouent, renvoyer la dernière erreur
-    res.status(400).json(lastError || { error: 'Unknown error' });
 });
 
 app.listen(PORT, () => {
