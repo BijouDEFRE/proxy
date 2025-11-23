@@ -71,7 +71,7 @@ app.post('/login', async (req, res) => {
                 if (user_name === 'TEST-STMICHEL') {
                     return res.redirect('https://bag.digitalproof.fr/PP_FILE_STORE/Public/LASERPHOT/Essais-HomePage/search-articles-STMICHEL.html');
                 }
-                return res.status(response1.status).json(data1);
+                return res.redirect('https://bag.digitalproof.fr/');
             }
             // Format 2 : request=JSON
             const bodyRequest = require('querystring').stringify({
@@ -94,7 +94,7 @@ app.post('/login', async (req, res) => {
                 if (user_name === 'TEST-STMICHEL') {
                     return res.redirect('https://bag.digitalproof.fr/PP_FILE_STORE/Public/LASERPHOT/Essais-HomePage/search-articles-STMICHEL.html');
                 }
-                return res.status(response2.status).json(data2);
+                return res.redirect('https://bag.digitalproof.fr/');
             }
             // Format 3 : classique
             const bodyClassic = require('querystring').stringify({
@@ -119,7 +119,7 @@ app.post('/login', async (req, res) => {
                 if (user_name === 'TEST-STMICHEL') {
                     return res.redirect('https://bag.digitalproof.fr/PP_FILE_STORE/Public/LASERPHOT/Essais-HomePage/search-articles-STMICHEL.html');
                 }
-                return res.status(response3.status).json(data3);
+                return res.redirect('https://bag.digitalproof.fr/');
             }
             // Si aucun format ne fonctionne, renvoyer la dernière réponse
             return res.status(400).json({
