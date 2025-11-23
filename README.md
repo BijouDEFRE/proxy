@@ -14,4 +14,4 @@ Ce dossier contient le proxy Node.js pour l'authentification Cloudflow.
 3. Lancer le serveur : `node backend-proxy.js`
 
 ## Utilisation
-Envoyer une requête POST à `/login` avec `user_name` et `user_pass`.
+Envoyer une requête POST à `/login` avec `user_name` et `user_pass`.# proxy
