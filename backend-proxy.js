@@ -1,6 +1,8 @@
 // backend-proxy.js
 // Proxy Node.js Express pour Cloudflow
 
+require('dotenv').config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
@@ -11,6 +13,7 @@ const https = require('https');
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
+const CLOUDFLOW_URL = process.env.CLOUDFLOW_URL || 'https://bag.digitalproof.fr/portal.cgi';
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -55,7 +58,7 @@ app.post('/login', async (req, res) => {
         user_name,
         user_pass
     });
-    const cloudflowUrl = 'https://bag.digitalproof.fr/portal.cgi';
+    const cloudflowUrl = CLOUDFLOW_URL;
     console.log('Body envoyé à Cloudflow:', cloudflowBody);
     console.log('URL envoyée à Cloudflow:', cloudflowUrl);
     console.log('Headers envoyés à Cloudflow:', {
