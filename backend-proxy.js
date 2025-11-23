@@ -37,8 +37,8 @@ app.post('/login', async (req, res) => {
     if (!user_name || !user_pass) {
         return res.status(400).json({ error: 'Missing credentials' });
     }
-    // Envoi des paramètres uniquement dans le body (x-www-form-urlencoded)
-    const cloudflowBody = require('querystring').stringify({
+    // Envoi des paramètres en JSON, comme attendu par Cloudflow
+    const cloudflowBody = JSON.stringify({
         method: 'auth.login',
         user_name,
         user_pass
@@ -47,14 +47,14 @@ app.post('/login', async (req, res) => {
     console.log('Body envoyé à Cloudflow:', cloudflowBody);
     console.log('URL envoyée à Cloudflow:', cloudflowUrl);
     console.log('Headers envoyés à Cloudflow:', {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'text/plain; charset=UTF-8',
         'Accept': 'application/json'
     });
     try {
         const response = await fetch(cloudflowUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'text/plain; charset=UTF-8',
                 'Accept': 'application/json'
             },
             body: cloudflowBody
